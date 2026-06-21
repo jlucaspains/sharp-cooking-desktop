@@ -1,6 +1,6 @@
 {
   "$schema": "https://wails.io/schemas/config.v2.json",
-  "name": "sharp-cooking-desktop",
+  "name": "Sharp Cooking",
   "outputfilename": "sharp-cooking-desktop",
   "frontend:install": "yarn install",
   "frontend:build": "yarn run build",
@@ -8,6 +8,6 @@
   "frontend:dev:serverUrl": "auto",
   "author": {
     "name": "Lucas Pains",
-    "email": "jlucaspains@gmail.com"
+    "email": "lpains.wp@gmail.com"
   }
 }

@@ -6,6 +6,7 @@ import (
 	"github.com/wailsapp/wails/v2"
 	"github.com/wailsapp/wails/v2/pkg/options"
 	"github.com/wailsapp/wails/v2/pkg/options/assetserver"
+	"github.com/wailsapp/wails/v2/pkg/options/mac"
 )
 
 //go:embed all:frontend/dist
@@ -17,7 +18,7 @@ func main() {
 
 	// Create application with options
 	err := wails.Run(&options.App{
-		Title:  "sharp-cooking-desktop",
+		Title:  "Sharp Cooking",
 		Width:  1024,
 		Height: 768,
 		AssetServer: &assetserver.Options{
@@ -27,6 +28,28 @@ func main() {
 		OnStartup:        app.startup,
 		Bind: []interface{}{
 			app,
+		},
+		Mac: &mac.Options{
+			TitleBar: &mac.TitleBar{
+				TitlebarAppearsTransparent: true,
+				HideTitle:                  false,
+				HideTitleBar:               false,
+				FullSizeContent:            false,
+				UseToolbar:                 false,
+				HideToolbarSeparator:       true,
+
+				// OnFileOpen:                 app.onFileOpen,
+				// OnUrlOpen:                  app.onUrlOpen,
+			},
+			Appearance:           mac.DefaultAppearance,
+			WebviewIsTransparent: false,
+			WindowIsTranslucent:  false,
+			ContentProtection:    false,
+			About: &mac.AboutInfo{
+				Title:   "Sharp Cooking",
+				Message: "© 2026 LPains",
+				// Icon:    icon,
+			},
 		},
 	})
 
