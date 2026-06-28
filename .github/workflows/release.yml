@@ -1,0 +1,90 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  build-macos:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - uses: actions/setup-go@v5
+        with:
+          go-version: '1.23'
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install Yarn
+        run: npm install -g yarn
+
+      - name: Install Wails
+        run: go install github.com/wailsapp/wails/v2/cmd/wails@v2.12.0
+
+      - name: Build macOS universal
+        run: wails build -platform darwin/universal
+
+      - name: Zip app bundle
+        run: |
+          cd build/bin
+          zip -r "Sharp-Cooking-${{ github.ref_name }}-macos-universal.zip" "Sharp Cooking.app"
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: macos-build
+          path: build/bin/Sharp-Cooking-${{ github.ref_name }}-macos-universal.zip
+
+  build-windows:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - uses: actions/setup-go@v5
+        with:
+          go-version: '1.23'
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install Yarn
+        run: npm install -g yarn
+
+      - name: Install Wails
+        run: go install github.com/wailsapp/wails/v2/cmd/wails@v2.12.0
+
+      - name: Build Windows installer
+        run: wails build -nsis
+
+      - name: Rename installer
+        shell: bash
+        run: mv "build/bin/sharp-cooking-desktop-amd64-installer.exe" "build/bin/Sharp-Cooking-${{ github.ref_name }}-windows-installer.exe"
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: windows-build
+          path: build/bin/Sharp-Cooking-${{ github.ref_name }}-windows-installer.exe
+
+  release:
+    needs: [build-macos, build-windows]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          merge-multiple: true
+          path: artifacts
+
+      - uses: softprops/action-gh-release@v2
+        with:
+          files: artifacts/*
+          generate_release_notes: true

@@ -20,12 +20,3 @@ func (a *App) startup(ctx context.Context) {
 	a.ctx = ctx
 }
 
-// func (a *App) Greet(name string) {
-// 	// runtime.RequestNotificationAuthorization(a.ctx)
-
-// 	runtime.SendNotification(a.ctx, runtime.NotificationOptions{
-// 		ID:    "notif-1",
-// 		Title: "Hello",
-// 		Body:  "Greetings human!",
-// 	})
-// }
