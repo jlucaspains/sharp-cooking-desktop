@@ -69,7 +69,7 @@ jobs:
 
       - name: Rename installer
         shell: bash
-        run: mv "build/bin/sharp-cooking-desktop-amd64-installer.exe" "build/bin/Sharp-Cooking-${{ github.ref_name }}-windows-installer.exe"
+        run: mv "build/bin/sharp-cooking-desktop*-installer.exe" "build/bin/Sharp-Cooking-${{ github.ref_name }}-windows-installer.exe"
 
       - uses: actions/upload-artifact@v4
         with:
