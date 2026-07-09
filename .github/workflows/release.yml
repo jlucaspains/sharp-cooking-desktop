@@ -67,6 +67,9 @@ jobs:
       - name: Build Windows installer
         run: wails build -nsis
 
+      - name: List build files
+        run: ls -la build/bin
+
       - name: Rename installer
         shell: bash
         run: mv "build/bin/sharp-cooking-desktop*-installer.exe" "build/bin/Sharp-Cooking-${{ github.ref_name }}-windows-installer.exe"
