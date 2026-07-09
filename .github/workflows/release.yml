@@ -4,6 +4,7 @@ on:
   push:
     tags:
       - 'v*'
+  workflow_dispatch: 
 
 jobs:
   build-macos:
@@ -68,7 +69,7 @@ jobs:
         run: wails build -nsis
 
       - name: List build files
-        run: ls -la build/bin
+        run: ls build/bin
 
       - name: Rename installer
         shell: bash
