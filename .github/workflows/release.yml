@@ -4,94 +4,26 @@ on:
   push:
     tags:
       - 'v*'
-  workflow_dispatch: 
+  workflow_dispatch:
 
 jobs:
-  build-macos:
-    runs-on: macos-latest
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          submodules: recursive
-
-      - uses: actions/setup-go@v5
-        with:
-          go-version: '1.23'
-
-      - uses: actions/setup-node@v4
-        with:
-          node-version: '20'
-
-      - name: Install Yarn
-        run: npm install -g yarn
-
-      - name: Install Wails
-        run: go install github.com/wailsapp/wails/v2/cmd/wails@v2.12.0
-
-      - name: Build macOS universal
-        run: wails build -platform darwin/universal
-
-      - name: Zip app bundle
-        run: |
-          cd build/bin
-          zip -r "sharp-cooking-${{ github.ref_name }}-macos-universal.zip" "Sharp Cooking.app"
-
-      - uses: actions/upload-artifact@v4
-        with:
-          name: macos-build
-          path: build/bin/sharp-cooking-${{ github.ref_name }}-macos-universal.zip
-
-  build-windows:
-    runs-on: windows-latest
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          submodules: recursive
-
-      - uses: actions/setup-go@v5
-        with:
-          go-version: '1.23'
-
-      - uses: actions/setup-node@v4
-        with:
-          node-version: '20'
-
-      - name: Install Yarn
-        run: npm install -g yarn
-
-      - name: Install Wails
-        run: go install github.com/wailsapp/wails/v2/cmd/wails@v2.12.0
-
-      - name: Install NSIS Compiler
-        uses: negrutiu/nsis-install@v3
-
-      - name: Build Windows installer
-        run: wails build -nsis
-
-      - name: List build files
-        run: ls build/bin
-
-      - name: Rename installer
-        shell: bash
-        run: mv "build/bin/Sharp Cooking-amd64-installer.exe" "build/bin/sharp-cooking-${{ github.ref_name }}-windows-amd64-installer.exe"
-
-      - uses: actions/upload-artifact@v4
-        with:
-          name: windows-build
-          path: build/bin/sharp-cooking-${{ github.ref_name }}-windows-amd64-installer.exe
+  build:
+    uses: ./.github/workflows/build.yml
+    with:
+      upload_artifacts: true
 
   release:
-    needs: [build-macos, build-windows]
+    needs: [build]
     runs-on: ubuntu-latest
     permissions:
       contents: write
     steps:
-      - uses: actions/download-artifact@v4
+      - uses: actions/download-artifact@v8
         with:
           merge-multiple: true
           path: artifacts
 
-      - uses: softprops/action-gh-release@v2
+      - uses: softprops/action-gh-release@v3
         with:
           files: artifacts/*
           generate_release_notes: true

@@ -1,0 +1,107 @@
+name: Build
+
+on:
+  workflow_call:
+    inputs:
+      upload_artifacts:
+        description: 'Upload build outputs as workflow artifacts'
+        type: boolean
+        default: false
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-go@v7
+        with:
+          go-version: '1.23'
+
+      - name: Create frontend/dist placeholder for go:embed
+        run: mkdir -p frontend/dist && touch frontend/dist/placeholder
+
+      - name: Vet
+        run: go vet ./...
+
+      - name: Test
+        run: go test ./...
+
+  build-macos:
+    needs: test
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          submodules: recursive
+
+      - uses: actions/setup-go@v7
+        with:
+          go-version: '1.23'
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version: '24'
+
+      - name: Install Yarn
+        run: npm install -g yarn
+
+      - name: Install Wails
+        run: go install github.com/wailsapp/wails/v2/cmd/wails@v2.12.0
+
+      - name: Build macOS universal
+        run: wails build -platform darwin/universal
+
+      - name: Zip app bundle
+        if: ${{ inputs.upload_artifacts }}
+        run: |
+          cd build/bin
+          zip -r "sharp-cooking-${{ github.ref_name }}-macos-universal.zip" "Sharp Cooking.app"
+
+      - uses: actions/upload-artifact@v7
+        if: ${{ inputs.upload_artifacts }}
+        with:
+          name: macos-build
+          path: build/bin/sharp-cooking-${{ github.ref_name }}-macos-universal.zip
+
+  build-windows:
+    needs: test
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          submodules: recursive
+
+      - uses: actions/setup-go@v7
+        with:
+          go-version: '1.23'
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version: '24'
+
+      - name: Install Yarn
+        run: npm install -g yarn
+
+      - name: Install Wails
+        run: go install github.com/wailsapp/wails/v2/cmd/wails@v2.12.0
+
+      - name: Install NSIS Compiler
+        uses: negrutiu/nsis-install@v3
+
+      - name: Build Windows installer
+        run: wails build -nsis
+
+      - name: List build files
+        run: ls build/bin
+
+      - name: Rename installer
+        if: ${{ inputs.upload_artifacts }}
+        shell: bash
+        run: mv "build/bin/Sharp Cooking-amd64-installer.exe" "build/bin/sharp-cooking-${{ github.ref_name }}-windows-amd64-installer.exe"
+
+      - uses: actions/upload-artifact@v7
+        if: ${{ inputs.upload_artifacts }}
+        with:
+          name: windows-build
+          path: build/bin/sharp-cooking-${{ github.ref_name }}-windows-amd64-installer.exe
